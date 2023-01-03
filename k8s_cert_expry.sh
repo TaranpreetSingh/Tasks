@@ -10,7 +10,7 @@
      filename="cm_$i'_'$namespace.pem"
      if `kubectl --context $cluster  -n $namespace get cm $i -o yaml | grep pem `
      then
-         kubectl --context $cluster  -n $namespace get cm $i -o yaml | yq .data > $filename
+         kubectl --context $cluster  -n $namespace get cm $i -o yaml | yq .data  | grep pem | awk -F":" '{print $2}'  > $filename
          cert_expr_date=$(openssl x509 -enddate -noout -in $filename | awk -F"=" '{print $2}')
          openssl x509 -enddate -noout -in $filename  -checkend "$DAYS" | grep -q 'Certificate will expire'
          if [ $? -eq 0 ]
@@ -25,7 +25,7 @@
       filename="secret_$i'_'$namespace.pem"
      if `kubectl --context $cluster  -n $namespace get secret $i -o yaml | grep pem `
      then
-         kubectl --context $cluster  -n $namespace get secret $i -o yaml |yq .data | grep crt | awk -F":" '{print $2}' | base64 -d > $filename
+         kubectl --context $cluster  -n $namespace get secret $i -o yaml |yq .data | grep pem | awk -F":" '{print $2}' | base64 -d > $filename
          cert_expr_date=$(openssl x509 -enddate -noout -in $filename | awk -F"=" '{print $2}')
          openssl x509 -enddate -noout -in $filename  -checkend "$DAYS" | grep -q 'Certificate will expire'
          if [ $? -eq 0 ]
